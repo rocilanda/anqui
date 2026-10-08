@@ -1,6 +1,6 @@
 # Anqui
 
-App de tarjetas de repaso espaciado (estilo Anki) para iPhone, hecha como web app instalable (PWA). Gratis, sin cuenta y funciona sin internet.
+App de tarjetas de repaso espaciado, hecha como web app instalable (PWA). Gratis, sin cuenta y funciona sin internet.
 
 - Algoritmo SM-2 como Anki (Otra vez / Difícil / Bien / Fácil)
 - Mazo inicial **Favoritos** con 333 palabras en japonés (lectura + significado)

@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Repaso">
+<meta name="theme-color" content="#171d17">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inclusive+Sans:wght@300..700&family=Noto+Sans+JP:wght@400..700&display=swap">
+<title>Repaso</title>
+<style>
+  :root {
+    color-scheme: dark;
+    /* Paleta Empujón */
+    --negro-900: #171d17; --gris-800: #252924; --gris-500: #6b796b; --gris-300: #d1d6d1;
+    --gris-200: #e4e7e4; --blanco-100: #f4f5f5;
+    --naranja: #f79045; --verde: #53f745; --amarillo: #fdf52a; --celeste: #45acf7; --magenta: #ea45f7;
+    --error: #f74553;
+
+    /* Tokens (el sistema es siempre oscuro) */
+    --bg: var(--negro-900);            /* cuerpo */
+    --surface: var(--gris-800);        /* superficie */
+    --reading-bg: var(--blanco-100);   /* lectura: fondo */
+    --reading-text: var(--negro-900);  /* lectura: texto */
+    --text: var(--blanco-100);         /* texto primario */
+    --muted: var(--gris-200);          /* texto secundario */
+    --disabled: var(--gris-500);       /* texto deshabilitado */
+    --line: var(--gris-500);
+    --accent: var(--naranja);          /* color dominante */
+    --on-color: var(--negro-900);      /* texto sobre color sólido: siempre negro */
+    --new: var(--celeste); --learn: var(--naranja); --review: var(--verde);
+    --gradient: linear-gradient(90deg, var(--naranja), var(--magenta), var(--celeste), var(--verde), var(--amarillo));
+    --radius: 14px;
+    /* Inclusive Sans cubre el alfabeto latino; lo que no tiene (kana, kanji) cae en Noto Sans JP. */
+    --font: "Inclusive Sans", "Noto Sans JP", -apple-system, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body {
+    font: 17px/1.45 var(--font);
+    min-height: 100dvh; display: flex; flex-direction: column;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+    accent-color: var(--accent);
+  }
+  header {
+    position: sticky; top: 0; z-index: 5; background: var(--bg);
+    display: grid; grid-template-columns: 96px 1fr 96px; align-items: center; height: 52px; padding: 0 8px;
+  }
+  header::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--gradient); opacity: .9; }
+  header h1 { margin: 0; font-size: 17px; font-weight: 600; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  header .right { justify-self: end; display: flex; gap: 4px; }
+  .icon { background: none; border: 0; color: var(--accent); font-size: 17px; padding: 8px; cursor: pointer; font-family: inherit; font-weight: 600; white-space: nowrap; }
+  .icon.big { font-size: 24px; line-height: 1; }
+  main { flex: 1; width: 100%; max-width: 640px; margin: 0 auto; padding: 16px 16px calc(24px + env(safe-area-inset-bottom)); }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; margin: 24px 4px 8px; }
+  .list { list-style: none; margin: 0; padding: 0; background: var(--surface); border-radius: var(--radius); overflow: hidden; }
+  .list li + li { border-top: 2px solid var(--bg); }
+  .list a, .list .item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; color: inherit; text-decoration: none; }
+  .list .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .list .sub { color: var(--muted); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nums { display: flex; gap: 10px; font-variant-numeric: tabular-nums; font-size: 15px; }
+  .nums b { min-width: 22px; text-align: right; font-weight: 600; }
+  .n { color: var(--new); } .l { color: var(--learn); } .r { color: var(--review); }
+  .nums b.zero { color: var(--disabled); }
+  .legend { display: flex; gap: 14px; justify-content: flex-end; font-size: 13px; color: var(--muted); margin: 0 16px 8px; }
+  .legend span::before { content: "●"; margin-right: 4px; }
+  .legend .n::before { color: var(--new); } .legend .l::before { color: var(--learn); } .legend .r::before { color: var(--review); }
+  .legend span { color: var(--muted); }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    border: 1.5px solid var(--surface); border-radius: 12px; padding: 13px 18px; font: inherit; font-weight: 600; cursor: pointer;
+    background: var(--surface); color: var(--text); text-decoration: none;
+  }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-color); }
+  .btn.danger { background: transparent; border-color: var(--line); color: var(--text); }
+  .btn.block { width: 100%; }
+  .btn:disabled { color: var(--disabled); cursor: default; }
+  .stack { display: grid; gap: 10px; }
+  .row { display: flex; gap: 8px; }
+  .row > input { flex: 1; min-width: 0; }
+  input, textarea, select {
+    font: inherit; color: var(--text); background: var(--surface); border: 1.5px solid var(--surface);
+    border-radius: 12px; padding: 12px 14px; width: 100%;
+  }
+  input::placeholder, textarea::placeholder { color: var(--disabled); }
+  textarea { min-height: 110px; resize: vertical; }
+  input:focus, textarea:focus { outline: none; border-color: var(--accent); }
+  label { display: block; font-size: 14px; color: var(--muted); margin: 0 4px 6px; }
+  .check { display: flex; align-items: center; gap: 10px; font-size: 16px; color: var(--text); margin: 4px; }
+  .check input { width: 20px; height: 20px; }
+  .empty { text-align: center; color: var(--muted); padding: 40px 16px; }
+  .empty p { margin: 0 0 16px; }
+  /* Elemento destacado: fondo gradiente + borde gradiente */
+  .featured {
+    border: 2px solid transparent; border-radius: var(--radius);
+    background:
+      radial-gradient(120% 120% at 0% 0%, rgb(234 69 247 / .07), transparent 55%) padding-box,
+      radial-gradient(120% 120% at 100% 0%, rgb(253 245 42 / .08), transparent 55%) padding-box,
+      radial-gradient(120% 120% at 0% 100%, rgb(247 144 69 / .08), transparent 55%) padding-box,
+      radial-gradient(120% 120% at 100% 100%, rgb(69 172 247 / .07), transparent 55%) padding-box,
+      linear-gradient(var(--gris-800), var(--gris-800)) padding-box,
+      var(--gradient) border-box;
+  }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); margin-bottom: 16px; padding: 6px 0; }
+  .stat { padding: 10px 8px; text-align: center; }
+  .stat + .stat { border-left: 1px solid var(--line); }
+  .stat b { display: block; font-size: 28px; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 13px; color: var(--muted); }
+  .stat b.zero { color: var(--disabled); }
+  .hint { font-size: 14px; color: var(--muted); margin: 8px 4px; }
+  /* Estudio */
+  .study { display: flex; flex-direction: column; min-height: calc(100dvh - 52px - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+  .counter { display: flex; justify-content: center; gap: 18px; font-variant-numeric: tabular-nums; font-weight: 600; margin-bottom: 12px; }
+  .counter span.cur { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; }
+  .card {
+    flex: 1; background: var(--reading-bg); color: var(--reading-text); border-radius: 18px; padding: 28px 20px; font-size: 24px; text-align: center;
+    display: flex; flex-direction: column; justify-content: center; gap: 18px; overflow-wrap: anywhere; cursor: pointer;
+  }
+  .card .front { font-size: 36px; line-height: 1.3; font-weight: 500; }
+  .card hr { border: 0; border-top: 1.5px solid var(--gris-300); margin: 0; }
+  .card .reading { font-size: 22px; color: var(--gris-500); margin-bottom: -6px; }
+  .card .back { font-size: 18px; line-height: 1.5; }
+  .speak {
+    align-self: center; display: inline-flex; align-items: center; gap: 6px; margin: -4px 0;
+    background: none; border: 1.5px solid var(--gris-300); border-radius: 999px; padding: 6px 14px;
+    color: var(--reading-text); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .speak svg { width: 18px; height: 18px; }
+  .speak.on { border-color: var(--reading-text); }
+  .answers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 14px; }
+  .answers button {
+    border: 1.5px solid currentColor; border-radius: 12px; padding: 10px 4px; font: inherit; font-weight: 600; cursor: pointer;
+    background: var(--surface); display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .answers small { font-size: 12px; font-weight: 500; color: var(--muted); }
+  .a1 { color: var(--naranja); } .a2 { color: var(--amarillo); } .a3 { color: var(--verde); } .a4 { color: var(--celeste); }
+  .show { margin-top: 14px; }
+  .done { text-align: center; padding: 40px 20px; margin-top: 24px; }
+  .done .big { font-size: 56px; }
+  .done h3 { margin: 8px 0; font-size: 22px; }
+  .done .btn { margin-top: 12px; }
+  #toast {
+    position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px);
+    background: var(--surface); color: var(--text); border: 1.5px solid var(--gris-200);
+    padding: 10px 16px; border-radius: 999px; font-size: 15px;
+    opacity: 0; pointer-events: none; transition: .2s; max-width: calc(100% - 32px);
+  }
+  #toast.error { color: var(--error); border-color: var(--error); }
+  #toast.on { opacity: 1; transform: translateX(-50%); }
+</style>
+</head>
+<body>
+<header>
+  <div><button class="icon" id="back" hidden>‹ Atrás</button></div>
+  <h1 id="title">Repaso</h1>
+  <div class="right" id="actions"></div>
+</header>
+<main id="view"></main>
+<div id="toast" role="status"></div>
+
+<script>
+'use strict';
+// ───────────── Datos ─────────────
+const KEY = 'repaso-v1';
+const MIN = 60e3, DAY = 864e5;
+const LEARN_STEPS = [1, 10];      // minutos (como Anki por defecto)
+const RELEARN_STEP = 10;          // minutos tras olvidar una tarjeta de repaso
+const LEARN_AHEAD = 20 * MIN;     // se pueden mostrar tarjetas en aprendizaje hasta 20 min antes
+
+let firstRun = false;
+let db = load();
+function load() {
+  try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && Array.isArray(d.decks)) return d; } catch {}
+  firstRun = true;
+  return { decks: [], cards: [], log: {}, settings: { newPerDay: 20 } };
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(db)); }
+  catch { toast('No se pudo guardar: almacenamiento lleno', true); }
+}
+navigator.storage?.persist?.();
+
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const dayKey = (t = Date.now()) => { const d = new Date(t); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
+const endOfToday = () => { const d = new Date(); d.setHours(23, 59, 59, 999); return +d; };
+const deckById = id => db.decks.find(d => d.id === id);
+const cardsOf = id => db.cards.filter(c => c.deckId === id);
+const newLimit = deck => deck.newPerDay ?? db.settings.newPerDay;
+const introducedToday = id => db.log[dayKey()]?.[id] ?? 0;
+
+function newCard(deckId, front, back, reading = '') {
+  return { id: uid(), deckId, front, reading, back, created: Date.now(), state: 'new', step: 0, due: 0, interval: 0, ease: 2.5, reps: 0, lapses: 0 };
+}
+
+// Mazo inicial de vocabulario (favoritos.json: [{f: frente, r: lectura, b: significado}])
+async function addFavoritos() {
+  const words = await (await fetch('favoritos.json')).json();
+  const deck = { id: uid(), name: 'Favoritos', created: Date.now() };
+  db.decks.push(deck);
+  const t = Date.now();
+  words.forEach((w, i) => db.cards.push({ ...newCard(deck.id, w.f, w.b, w.r), created: t + i }));
+  save();
+}
+
+// ───────────── Programación (SM-2, estilo Anki) ─────────────
+function schedule(card, grade, now = Date.now(), fuzz = true) {
+  const c = { ...card };
+  c.reps++;
+  const graduate = days => { c.state = 'review'; c.step = 0; c.interval = days; c.due = now + days * DAY; };
+
+  if (c.state === 'new' || c.state === 'learning') {
+    c.state = 'learning';
+    const cur = LEARN_STEPS[c.step] ?? LEARN_STEPS[0];
+    if (grade === 1) { c.step = 0; c.due = now + LEARN_STEPS[0] * MIN; }
+    else if (grade === 2) { c.due = now + ((cur + (LEARN_STEPS[c.step + 1] ?? cur * 1.5)) / 2) * MIN; }
+    else if (grade === 3) { c.step++; c.step >= LEARN_STEPS.length ? graduate(1) : (c.due = now + LEARN_STEPS[c.step] * MIN); }
+    else graduate(4);
+  } else if (c.state === 'relearning') {
+    if (grade === 1) c.due = now + RELEARN_STEP * MIN;
+    else if (grade === 2) c.due = now + RELEARN_STEP * 1.5 * MIN;
+    else graduate(Math.max(1, c.interval) + (grade === 4 ? 1 : 0));
+  } else { // review
+    const late = Math.max(0, (now - c.due) / DAY);
+    const ivl = Math.max(1, c.interval);
+    let next;
+    if (grade === 1) {
+      c.lapses++; c.ease = Math.max(1.3, c.ease - 0.2);
+      c.interval = Math.max(1, Math.round(ivl * 0.2));
+      c.state = 'relearning'; c.due = now + RELEARN_STEP * MIN;
+      return c;
+    }
+    if (grade === 2) { next = ivl * 1.2; c.ease = Math.max(1.3, c.ease - 0.15); }
+    if (grade === 3) { next = (ivl + late / 2) * c.ease; }
+    if (grade === 4) { next = (ivl + late) * c.ease * 1.3; c.ease += 0.15; }
+    next = Math.max(ivl + 1, next);
+    if (fuzz && next >= 3) next *= 0.95 + Math.random() * 0.1;
+    c.interval = Math.min(36500, Math.round(next));
+    c.due = now + c.interval * DAY;
+  }
+  return c;
+}
+
+function fmtSpan(ms) {
+  const m = ms / MIN;
+  if (m < 60) return `${Math.max(1, Math.round(m))} min`;
+  if (m < 1440) return `${Math.round(m / 60)} h`;
+  const d = ms / DAY;
+  if (d < 30) return `${Math.round(d)} d`;
+  if (d < 365) return `${+(d / 30).toFixed(1)} mes`;
+  return `${+(d / 365).toFixed(1)} a`;
+}
+
+// ───────────── Colas ─────────────
+function counts(deckId) {
+  const now = Date.now(), eod = endOfToday();
+  let n = 0, l = 0, r = 0;
+  for (const c of db.cards) {
+    if (c.deckId !== deckId) continue;
+    if (c.state === 'new') n++;
+    else if (c.state === 'learning' || c.state === 'relearning') { if (c.due <= now + LEARN_AHEAD) l++; }
+    else if (c.due <= eod) r++;
+  }
+  n = Math.min(n, Math.max(0, newLimit(deckById(deckId)) - introducedToday(deckId)));
+  return { n, l, r };
+}
+
+function nextCard(deckId) {
+  const now = Date.now(), eod = endOfToday();
+  const cards = cardsOf(deckId);
+  const byDue = (a, b) => a.due - b.due;
+  const learning = cards.filter(c => c.state === 'learning' || c.state === 'relearning').sort(byDue);
+  if (learning[0] && learning[0].due <= now) return learning[0];
+  const reviews = cards.filter(c => c.state === 'review' && c.due <= eod).sort(byDue);
+  if (reviews[0]) return reviews[0];
+  if (introducedToday(deckId) < newLimit(deckById(deckId))) {
+    const fresh = cards.filter(c => c.state === 'new').sort((a, b) => a.created - b.created);
+    if (fresh[0]) return fresh[0];
+  }
+  if (learning[0] && learning[0].due <= now + LEARN_AHEAD) return learning[0];
+  return null;
+}
+
+// ───────────── UI helpers ─────────────
+const $ = s => document.querySelector(s);
+const view = $('#view');
+const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+const rich = s => esc(s).replace(/\n/g, '<br>');
+const num = (v, cls) => `<b class="${v ? cls : cls + ' zero'}">${v}</b>`;
+const go = h => { location.hash = h; };
+
+let toastTimer;
+function toast(msg, error = false) {
+  const t = $('#toast'); t.textContent = msg; t.classList.toggle('error', error); t.classList.add('on');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 1800);
+}
+
+let backTarget = null;
+function header(title, back, actions = '') {
+  $('#title').textContent = title;
+  backTarget = back;
+  $('#back').hidden = !back;
+  $('#actions').innerHTML = actions;
+  document.title = title === 'Repaso' ? 'Repaso' : `${title} · Repaso`;
+}
+$('#back').onclick = () => go(backTarget);
+
+let timer = null, keyHandler = null, answerShown = false;
+// ───────────── Voz (Web Speech API, voz japonesa del sistema) ─────────────
+const canSpeak = 'speechSynthesis' in window;
+const JA = /[぀-ヿ㐀-鿿]/;
+let jaVoice = null;
+function pickVoice() {
+  const voices = speechSynthesis.getVoices().filter(v => /^ja/i.test(v.lang));
+  // Preferimos voces mejoradas y las voces naturales de Apple; evitamos las de novedad (Eddy, Grandma…).
+  const prefs = [/premium/i, /enhanced|mejorada/i, /kyoko/i, /o-?ren/i, /otoya/i, /hattori/i];
+  jaVoice = prefs.map(p => voices.find(v => p.test(v.name))).find(Boolean)
+    || voices.find(v => v.default) || voices[0] || null;
+}
+if (canSpeak) { pickVoice(); speechSynthesis.addEventListener?.('voiceschanged', pickVoice); }
+
+// Lee la lectura en kana (más fiable que el kanji); si no hay, el primer texto en japonés de la tarjeta.
+function speechText(card) {
+  for (const s of [card.reading, card.front, card.back]) {
+    if (s && JA.test(s)) return s.split(/[、,\n]/).map(x => x.trim()).find(x => JA.test(x)).replace(/\./g, '');
+  }
+  return null;
+}
+function speak(text, btn) {
+  if (!canSpeak || !text) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ja-JP'; u.rate = 0.9;
+  if (jaVoice) u.voice = jaVoice;
+  if (btn) { btn.classList.add('on'); u.onend = u.onerror = () => btn.classList.remove('on'); }
+  speechSynthesis.speak(u);
+}
+const autoSpeak = () => db.settings.autoSpeak !== false;
+const SPEAKER = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>`;
+
+function route() {
+  clearTimeout(timer); keyHandler = null; answerShown = false;
+  if (canSpeak) speechSynthesis.cancel();
+  const [, name, id] = location.hash.split('/');
+  window.scrollTo(0, 0);
+  const needsDeck = ['deck', 'study', 'add', 'cards', 'import'];
+  if (needsDeck.includes(name) && !deckById(id)) return go('#/');
+  switch (name) {
+    case 'deck': return viewDeck(id);
+    case 'study': return viewStudy(id);
+    case 'add': return viewEdit(id, null);
+    case 'edit': return db.cards.find(c => c.id === id) ? viewEdit(null, id) : go('#/');
+    case 'cards': return viewCards(id);
+    case 'import': return viewImport(id);
+    case 'settings': return viewSettings();
+    default: return viewHome();
+  }
+}
+addEventListener('hashchange', route);
+addEventListener('keydown', e => { if (keyHandler && !/INPUT|TEXTAREA/.test(e.target.tagName)) keyHandler(e); });
+// Al volver a la app se refrescan los contadores, salvo que estés escribiendo o mirando una respuesta.
+addEventListener('visibilitychange', () => { if (!document.hidden && !answerShown && !/^#\/(add|edit|import)/.test(location.hash)) route(); });
+
+// ───────────── Vistas ─────────────
+function viewHome() {
+  header('Repaso', null, `<button class="icon big" id="gear" aria-label="Ajustes">⚙︎</button>`);
+  $('#gear').onclick = () => go('#/settings');
+  const rows = db.decks.map(d => {
+    const k = counts(d.id);
+    return `<li><a href="#/deck/${d.id}"><span class="name">${esc(d.name)}</span>
+      <span class="nums">${num(k.n, 'n')}${num(k.l, 'l')}${num(k.r, 'r')}</span></a></li>`;
+  }).join('');
+  view.innerHTML = `
+    ${db.decks.length ? `
+      <div class="legend"><span class="n">Nuevas</span><span class="l">Aprendiendo</span><span class="r">Repaso</span></div>
+      <ul class="list">${rows}</ul>` : `
+      <div class="empty">
+        <p>Todavía no tenés mazos.<br>Creá uno abajo o cargá tu vocabulario de favoritos.</p>
+        <button class="btn" id="fav">Cargar mazo Favoritos</button>
+      </div>`}
+    <h2>Nuevo mazo</h2>
+    <form class="row" id="newDeck">
+      <input name="name" placeholder="Nombre del mazo" autocomplete="off" required>
+      <button class="btn primary">Crear</button>
+    </form>`;
+  $('#newDeck').onsubmit = e => {
+    e.preventDefault();
+    const name = e.target.name.value.trim(); if (!name) return;
+    db.decks.push({ id: uid(), name, created: Date.now() }); save(); viewHome();
+  };
+  $('#fav')?.addEventListener('click', async e => {
+    e.target.disabled = true;
+    try { await addFavoritos(); viewHome(); }
+    catch { e.target.disabled = false; toast('No se pudo cargar el mazo. ¿Hay conexión?', true); }
+  });
+}
+
+function viewDeck(id) {
+  const deck = deckById(id), k = counts(id), total = cardsOf(id).length;
+  header(deck.name, '#/');
+  view.innerHTML = `
+    <div class="stats featured">
+      <div class="stat"><b class="${k.n ? 'n' : 'zero'}">${k.n}</b><span>Nuevas</span></div>
+      <div class="stat"><b class="${k.l ? 'l' : 'zero'}">${k.l}</b><span>Aprendiendo</span></div>
+      <div class="stat"><b class="${k.r ? 'r' : 'zero'}">${k.r}</b><span>Para repasar</span></div>
+    </div>
+    <div class="stack">
+      <a class="btn primary block" href="#/study/${id}">Estudiar</a>
+      <a class="btn block" href="#/add/${id}">＋ Agregar tarjeta</a>
+    </div>
+    <h2>Mazo</h2>
+    <ul class="list">
+      <li><a href="#/cards/${id}"><span class="name">Ver tarjetas</span><span class="sub">${total}</span><span class="sub">›</span></a></li>
+      <li><a href="#/import/${id}"><span class="name">Importar desde texto</span><span class="sub">›</span></a></li>
+    </ul>
+    <h2>Opciones</h2>
+    <div class="stack">
+      <div><label for="dname">Nombre</label><input id="dname" value="${esc(deck.name)}"></div>
+      <div><label for="dnew">Tarjetas nuevas por día</label><input id="dnew" type="number" min="0" max="999" inputmode="numeric" value="${newLimit(deck)}"></div>
+      <button class="btn danger block" id="del">Eliminar mazo</button>
+    </div>`;
+  $('#dname').onchange = e => { const v = e.target.value.trim(); if (v) { deck.name = v; save(); header(v, '#/'); } };
+  $('#dnew').onchange = e => { deck.newPerDay = Math.max(0, parseInt(e.target.value) || 0); save(); viewDeck(id); };
+  $('#del').onclick = () => {
+    if (!confirm(`¿Eliminar "${deck.name}" y sus ${total} tarjetas? No se puede deshacer.`)) return;
+    db.decks = db.decks.filter(d => d.id !== id);
+    db.cards = db.cards.filter(c => c.deckId !== id);
+    save(); go('#/');
+  };
+}
+
+let undo = null;
+function viewStudy(id) {
+  answerShown = false;
+  const deck = deckById(id);
+  header(deck.name, `#/deck/${id}`, undo?.deckId === id ? `<button class="icon" id="undo">Deshacer</button>` : '');
+  $('#undo')?.addEventListener('click', () => {
+    const i = db.cards.findIndex(c => c.id === undo.card.id);
+    if (i >= 0) db.cards[i] = undo.card;
+    db.log = undo.log; undo = null; save(); viewStudy(id);
+  });
+
+  const card = nextCard(id);
+  if (!card) {
+    const soon = cardsOf(id).filter(c => (c.state === 'learning' || c.state === 'relearning') && c.due <= endOfToday())
+      .sort((a, b) => a.due - b.due)[0];
+    view.innerHTML = `<div class="done featured">
+      <div class="big">${soon ? '⏳' : '🎉'}</div>
+      <h3>${soon ? 'Esperando tarjetas en aprendizaje' : '¡Listo por hoy!'}</h3>
+      <p class="hint">${soon ? `La próxima aparece en ${fmtSpan(soon.due - LEARN_AHEAD - Date.now())}.` : 'No quedan tarjetas pendientes en este mazo.'}</p>
+      <a class="btn" href="#/deck/${id}">Volver al mazo</a></div>`;
+    if (soon) timer = setTimeout(() => viewStudy(id), Math.max(1000, soon.due - LEARN_AHEAD - Date.now()));
+    return;
+  }
+
+  const k = counts(id);
+  const cur = card.state === 'new' ? 'n' : card.state === 'review' ? 'r' : 'l';
+  const now = Date.now();
+  const previews = [1, 2, 3, 4].map(g => fmtSpan(schedule(card, g, now, false).due - now));
+  const labels = ['Otra vez', 'Difícil', 'Bien', 'Fácil'];
+  view.innerHTML = `<div class="study">
+    <div class="counter">
+      <span class="n ${cur === 'n' ? 'cur' : ''}">${k.n}</span>
+      <span class="l ${cur === 'l' ? 'cur' : ''}">${k.l}</span>
+      <span class="r ${cur === 'r' ? 'cur' : ''}">${k.r}</span>
+    </div>
+    <div class="card" id="card" lang="ja"><div class="front">${rich(card.front)}</div></div>
+    <button class="btn primary block show" id="show">Mostrar respuesta</button>
+  </div>`;
+
+  let shown = false;
+  const say = speechText(card);
+  const replay = () => speak(say, $('#speak'));
+  const reveal = () => {
+    if (shown) return; shown = answerShown = true;
+    $('#card').insertAdjacentHTML('beforeend', `<hr>
+      ${card.reading ? `<div class="reading">${rich(card.reading)}</div>` : ''}
+      ${canSpeak && say ? `<button class="speak" id="speak" aria-label="Escuchar pronunciación">${SPEAKER}Escuchar</button>` : ''}
+      <div class="back" lang="en">${rich(card.back)}</div>`);
+    $('#speak')?.addEventListener('click', e => { e.stopPropagation(); replay(); });
+    $('#show').outerHTML = `<div class="answers">${labels.map((t, i) =>
+      `<button class="a${i + 1}" data-g="${i + 1}">${t}<small>${previews[i]}</small></button>`).join('')}</div>`;
+    view.querySelectorAll('[data-g]').forEach(b => b.onclick = () => answer(+b.dataset.g));
+    // Se llama dentro del toque del usuario, así iOS permite el audio.
+    if (autoSpeak()) replay();
+  };
+  const answer = g => {
+    undo = { deckId: id, card: { ...card }, log: JSON.parse(JSON.stringify(db.log)) };
+    if (card.state === 'new') {
+      const day = (db.log[dayKey()] ??= {});
+      day[id] = (day[id] ?? 0) + 1;
+    }
+    Object.assign(card, schedule(card, g));
+    save(); viewStudy(id);
+  };
+  $('#show').onclick = reveal;
+  $('#card').onclick = reveal;
+  keyHandler = e => {
+    if (!shown && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); reveal(); }
+    else if (shown && /^[1-4]$/.test(e.key)) answer(+e.key);
+    else if (shown && e.key.toLowerCase() === 'r') replay();
+  };
+}
+
+function viewEdit(deckId, cardId) {
+  const card = cardId ? db.cards.find(c => c.id === cardId) : null;
+  deckId = card ? card.deckId : deckId;
+  const back = card ? `#/cards/${deckId}` : `#/deck/${deckId}`;
+  header(card ? 'Editar tarjeta' : 'Nueva tarjeta', back);
+  view.innerHTML = `<form class="stack" id="f">
+    <div><label for="front">Frente</label><textarea id="front" required>${esc(card?.front ?? '')}</textarea></div>
+    <div><label for="reading">Lectura (opcional)</label><input id="reading" autocomplete="off" lang="ja" value="${esc(card?.reading ?? '')}"></div>
+    <div><label for="backT">Reverso</label><textarea id="backT" required>${esc(card?.back ?? '')}</textarea></div>
+    ${card ? '' : `<label class="check"><input type="checkbox" id="rev"> Crear también la tarjeta inversa</label>`}
+    <button class="btn primary block">${card ? 'Guardar cambios' : 'Agregar'}</button>
+    ${card ? `<button type="button" class="btn danger block" id="del">Eliminar tarjeta</button>
+      <p class="hint">${card.state === 'new' ? 'Nueva, sin estudiar.' : `Intervalo: ${card.interval} d · Facilidad: ${Math.round(card.ease * 100)}% · Olvidos: ${card.lapses}`}</p>` : ''}
+  </form>`;
+  if (!card) $('#front').focus();
+  $('#f').onsubmit = e => {
+    e.preventDefault();
+    const front = $('#front').value.trim(), backT = $('#backT').value.trim(), reading = $('#reading').value.trim();
+    if (!front || !backT) return;
+    if (card) { Object.assign(card, { front, back: backT, reading }); save(); toast('Guardada'); go(back); return; }
+    db.cards.push(newCard(deckId, front, backT, reading));
+    // La inversa muestra el significado y pregunta la palabra; la lectura va en el reverso.
+    if ($('#rev').checked) db.cards.push({ ...newCard(deckId, backT, front, reading), created: Date.now() + 1 });
+    save(); toast($('#rev').checked ? '2 tarjetas agregadas' : 'Tarjeta agregada');
+    $('#front').value = ''; $('#reading').value = ''; $('#backT').value = ''; $('#front').focus();
+  };
+  $('#del')?.addEventListener('click', () => {
+    if (!confirm('¿Eliminar esta tarjeta?')) return;
+    db.cards = db.cards.filter(c => c.id !== cardId); save(); go(back);
+  });
+}
+
+function viewCards(id) {
+  header('Tarjetas', `#/deck/${id}`, `<button class="icon big" id="add" aria-label="Agregar">＋</button>`);
+  $('#add').onclick = () => go(`#/add/${id}`);
+  view.innerHTML = `<input id="q" type="search" placeholder="Buscar…" autocomplete="off"><div id="res" style="margin-top:12px"></div>`;
+  const draw = () => {
+    const q = $('#q').value.trim().toLowerCase();
+    const cards = cardsOf(id).filter(c => !q || [c.front, c.reading ?? '', c.back].some(s => s.toLowerCase().includes(q)))
+      .sort((a, b) => b.created - a.created);
+    const status = c => c.state === 'new' ? '<span class="n">nueva</span>'
+      : c.state === 'review' ? `<span class="r">${c.due <= Date.now() ? 'hoy' : 'en ' + fmtSpan(c.due - Date.now())}</span>`
+      : '<span class="l">aprendiendo</span>';
+    $('#res').innerHTML = cards.length ? `<ul class="list">${cards.slice(0, 300).map(c => `
+      <li><a href="#/edit/${c.id}"><span class="name">${esc(c.front)}<div class="sub">${c.reading ? esc(c.reading) + ' · ' : ''}${esc(c.back.replace(/\n/g, '; '))}</div></span>
+      <span class="sub">${status(c)}</span></a></li>`).join('')}</ul>
+      ${cards.length > 300 ? `<p class="hint">Mostrando 300 de ${cards.length}. Usá la búsqueda.</p>` : ''}`
+      : `<div class="empty">${q ? 'Sin resultados.' : 'Este mazo no tiene tarjetas.'}</div>`;
+  };
+  $('#q').oninput = draw; draw();
+}
+
+function viewImport(id) {
+  header('Importar', `#/deck/${id}`);
+  view.innerHTML = `<div class="stack">
+    <p class="hint">Pegá una tarjeta por línea, con el frente y el reverso separados por <b>tabulación</b>, <b>;</b> o <b>|</b>.
+    Sirve para pegar desde una planilla (Excel / Google Sheets) o un archivo exportado de Anki como texto.
+    Con tabulaciones también podés usar tres columnas: <b>palabra · lectura · significado</b>.</p>
+    <textarea id="txt" style="min-height:220px" placeholder="hola;hello&#10;gracias;thank you"></textarea>
+    <button class="btn primary block" id="go">Importar</button>
+  </div>`;
+  $('#go').onclick = () => {
+    const lines = $('#txt').value.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+    let added = 0;
+    for (const line of lines) {
+      const cols = line.split('\t').map(s => s.trim().replace(/^"(.*)"$/, '$1'));
+      if (cols.length >= 3) {
+        const [word, reading, meaning] = cols;
+        const front = word || reading.split(/[,、]/)[0].trim();
+        if (front && meaning) db.cards.push({ ...newCard(id, front, meaning.split(/;\s*/).join('\n'), reading), created: Date.now() + added++ });
+        continue;
+      }
+      const sep = line.includes('\t') ? '\t' : line.includes(';') ? ';' : '|';
+      const i = line.indexOf(sep); if (i < 0) continue;
+      const front = line.slice(0, i).trim(), back = line.slice(i + 1).trim();
+      if (front && back) db.cards.push({ ...newCard(id, front, back), created: Date.now() + added++ });
+    }
+    save();
+    if (added) { toast(`${added} tarjetas importadas`); go(`#/deck/${id}`); }
+    else toast('No encontré tarjetas con separador', true);
+  };
+}
+
+function viewSettings() {
+  header('Ajustes', '#/');
+  view.innerHTML = `<div class="stack">
+    <div><label for="np">Tarjetas nuevas por día (valor por defecto)</label>
+      <input id="np" type="number" min="0" max="999" inputmode="numeric" value="${db.settings.newPerDay}"></div>
+    <h2>Pronunciación</h2>
+    ${canSpeak ? `
+      <label class="check" style="margin-top:0"><input type="checkbox" id="auto" ${autoSpeak() ? 'checked' : ''}> Leer la palabra en voz alta al mostrar la respuesta</label>
+      <button class="btn block" id="test">${SPEAKER} Probar voz</button>
+      <p class="hint">Usa la voz japonesa del iPhone. Si no se escucha, revisá el volumen y el modo silencio.
+        Para una voz más natural: Ajustes del iPhone → Accesibilidad → Contenido leído → Voces → Japonés → descargá una voz "mejorada".</p>`
+    : `<p class="hint" style="margin-top:0">Este navegador no permite leer en voz alta.</p>`}
+    <h2>Copia de seguridad</h2>
+    <p class="hint" style="margin-top:0">Tus tarjetas se guardan solo en este dispositivo. Exportá una copia de vez en cuando
+      (por ejemplo a Archivos o iCloud Drive) para no perderlas si borrás la app.</p>
+    <button class="btn primary block" id="exp">Exportar copia (.json)</button>
+    <label class="btn block" style="margin:0;color:var(--accent);font-size:17px">Restaurar copia…
+      <input type="file" id="imp" accept=".json,application/json" hidden></label>
+    <p class="hint">${db.decks.length} mazos · ${db.cards.length} tarjetas</p>
+  </div>`;
+  $('#np').onchange = e => { db.settings.newPerDay = Math.max(0, parseInt(e.target.value) || 0); save(); };
+  $('#auto')?.addEventListener('change', e => { db.settings.autoSpeak = e.target.checked; save(); });
+  $('#test')?.addEventListener('click', () => speak('こんにちは。日本語の勉強を頑張りましょう。'));
+  $('#exp').onclick = async () => {
+    const name = `repaso-${dayKey()}.json`;
+    const file = new File([JSON.stringify(db)], name, { type: 'application/json' });
+    if (navigator.canShare?.({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: name }); return; } catch (err) { if (err.name === 'AbortError') return; }
+    }
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(file), download: name });
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  $('#imp').onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      const data = JSON.parse(await f.text());
+      if (!Array.isArray(data.decks) || !Array.isArray(data.cards)) throw 0;
+      if (!confirm(`Esto reemplaza todo por la copia (${data.decks.length} mazos, ${data.cards.length} tarjetas). ¿Seguir?`)) return;
+      db = { log: {}, settings: { newPerDay: 20 }, ...data }; save(); toast('Copia restaurada'); go('#/');
+    } catch { toast('El archivo no es una copia válida', true); }
+  };
+}
+
+if (firstRun) addFavoritos().then(route, route); else route();
+if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>

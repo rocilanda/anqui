@@ -1,6 +1,6 @@
 // App: network-first (con internet trae la última versión; sin internet usa la copia guardada).
 // Fuentes de Google: cache-first (no cambian, y así funcionan sin internet una vez cargadas).
-const CACHE = 'repaso-v5';
+const CACHE = 'repaso-v7';
 const FONTS = 'repaso-fonts-v1';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png', './favoritos.json'];
 

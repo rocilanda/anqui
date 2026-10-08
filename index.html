@@ -134,13 +134,13 @@
   }
   .speak svg { width: 18px; height: 18px; }
   .speak.on { border-color: var(--reading-text); }
-  .answers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 14px; }
+  .answers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
   .answers button {
     border: 1.5px solid currentColor; border-radius: 12px; padding: 10px 4px; font: inherit; font-weight: 600; cursor: pointer;
     background: var(--surface); display: flex; flex-direction: column; align-items: center; gap: 2px;
   }
   .answers small { font-size: 12px; font-weight: 500; color: var(--muted); }
-  .a1 { color: var(--naranja); } .a2 { color: var(--amarillo); } .a3 { color: var(--verde); } .a4 { color: var(--celeste); }
+  .a1 { color: var(--naranja); } .a2 { color: var(--amarillo); } .a4 { color: var(--celeste); }
   .show { margin-top: 14px; }
   .done { text-align: center; padding: 40px 20px; margin-top: 24px; }
   .done .big { font-size: 56px; }
@@ -170,8 +170,10 @@
 // ───────────── Datos ─────────────
 const KEY = 'repaso-v1';
 const MIN = 60e3, DAY = 864e5;
-const LEARN_STEPS = [1, 10];      // minutos (como Anki por defecto)
-const RELEARN_STEP = 10;          // minutos tras olvidar una tarjeta de repaso
+// Respuestas: 1 = Otra vez, 2 = Difícil, 4 = Fácil (no hay "Bien").
+const AGAIN_MIN = 10;             // Otra vez: vuelve a aparecer en 10 minutos
+const HARD_DAYS = 1;              // Difícil en una tarjeta nueva: 1 día
+const EASY_DAYS = 4;              // Fácil en una tarjeta nueva: 4 días
 const LEARN_AHEAD = 20 * MIN;     // se pueden mostrar tarjetas en aprendizaje hasta 20 min antes
 
 let firstRun = false;
@@ -217,14 +219,10 @@ function schedule(card, grade, now = Date.now(), fuzz = true) {
 
   if (c.state === 'new' || c.state === 'learning') {
     c.state = 'learning';
-    const cur = LEARN_STEPS[c.step] ?? LEARN_STEPS[0];
-    if (grade === 1) { c.step = 0; c.due = now + LEARN_STEPS[0] * MIN; }
-    else if (grade === 2) { c.due = now + ((cur + (LEARN_STEPS[c.step + 1] ?? cur * 1.5)) / 2) * MIN; }
-    else if (grade === 3) { c.step++; c.step >= LEARN_STEPS.length ? graduate(1) : (c.due = now + LEARN_STEPS[c.step] * MIN); }
-    else graduate(4);
+    if (grade === 1) { c.step = 0; c.due = now + AGAIN_MIN * MIN; }
+    else graduate(grade === 4 ? EASY_DAYS : HARD_DAYS);
   } else if (c.state === 'relearning') {
-    if (grade === 1) c.due = now + RELEARN_STEP * MIN;
-    else if (grade === 2) c.due = now + RELEARN_STEP * 1.5 * MIN;
+    if (grade === 1) c.due = now + AGAIN_MIN * MIN;
     else graduate(Math.max(1, c.interval) + (grade === 4 ? 1 : 0));
   } else { // review
     const late = Math.max(0, (now - c.due) / DAY);
@@ -233,11 +231,11 @@ function schedule(card, grade, now = Date.now(), fuzz = true) {
     if (grade === 1) {
       c.lapses++; c.ease = Math.max(1.3, c.ease - 0.2);
       c.interval = Math.max(1, Math.round(ivl * 0.2));
-      c.state = 'relearning'; c.due = now + RELEARN_STEP * MIN;
+      c.state = 'relearning'; c.due = now + AGAIN_MIN * MIN;
       return c;
     }
-    if (grade === 2) { next = ivl * 1.2; c.ease = Math.max(1.3, c.ease - 0.15); }
-    if (grade === 3) { next = (ivl + late / 2) * c.ease; }
+    // Sin "Bien", Difícil es la respuesta de "me acordé": el intervalo crece normalmente (× facilidad).
+    if (grade === 2) { next = (ivl + late / 2) * c.ease; }
     if (grade === 4) { next = (ivl + late) * c.ease * 1.3; c.ease += 0.15; }
     next = Math.max(ivl + 1, next);
     if (fuzz && next >= 3) next *= 0.95 + Math.random() * 0.1;
@@ -332,10 +330,17 @@ function speechText(card) {
   }
   return null;
 }
+// iOS: tratar el sonido de la app como reproducción de medios, para que no lo corte el modo silencio (Safari 16.4+).
+try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch {}
+
+let utterance = null; // referencia viva: algunos navegadores descartan la frase antes de terminarla
 function speak(text, btn) {
   if (!canSpeak || !text) return;
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
+  // Safari a veces descarta una frase si se cancela justo antes: cancelamos solo si algo está sonando.
+  if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+  speechSynthesis.resume(); // por si quedó en pausa al volver a la app
+  if (!jaVoice) pickVoice();
+  const u = utterance = new SpeechSynthesisUtterance(text);
   u.lang = 'ja-JP'; u.rate = 0.9;
   if (jaVoice) u.voice = jaVoice;
   if (btn) { btn.classList.add('on'); u.onend = u.onerror = () => btn.classList.remove('on'); }
@@ -346,7 +351,7 @@ const SPEAKER = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 
 function route() {
   clearTimeout(timer); keyHandler = null; answerShown = false;
-  if (canSpeak) speechSynthesis.cancel();
+  if (canSpeak && (speechSynthesis.speaking || speechSynthesis.pending)) speechSynthesis.cancel();
   const [, name, id] = location.hash.split('/');
   window.scrollTo(0, 0);
   const needsDeck = ['deck', 'study', 'add', 'cards', 'import'];
@@ -462,8 +467,8 @@ function viewStudy(id) {
   const k = counts(id);
   const cur = card.state === 'new' ? 'n' : card.state === 'review' ? 'r' : 'l';
   const now = Date.now();
-  const previews = [1, 2, 3, 4].map(g => fmtSpan(schedule(card, g, now, false).due - now));
-  const labels = ['Otra vez', 'Difícil', 'Bien', 'Fácil'];
+  const grades = [[1, 'Otra vez'], [2, 'Difícil'], [4, 'Fácil']];
+  const previews = grades.map(([g]) => fmtSpan(schedule(card, g, now, false).due - now));
   view.innerHTML = `<div class="study">
     <div class="counter">
       <span class="n ${cur === 'n' ? 'cur' : ''}">${k.n}</span>
@@ -484,8 +489,8 @@ function viewStudy(id) {
       ${canSpeak && say ? `<button class="speak" id="speak" aria-label="Escuchar pronunciación">${SPEAKER}Escuchar</button>` : ''}
       <div class="back" lang="en">${rich(card.back)}</div>`);
     $('#speak')?.addEventListener('click', e => { e.stopPropagation(); replay(); });
-    $('#show').outerHTML = `<div class="answers">${labels.map((t, i) =>
-      `<button class="a${i + 1}" data-g="${i + 1}">${t}<small>${previews[i]}</small></button>`).join('')}</div>`;
+    $('#show').outerHTML = `<div class="answers">${grades.map(([g, t], i) =>
+      `<button class="a${g}" data-g="${g}">${t}<small>${previews[i]}</small></button>`).join('')}</div>`;
     view.querySelectorAll('[data-g]').forEach(b => b.onclick = () => answer(+b.dataset.g));
     // Se llama dentro del toque del usuario, así iOS permite el audio.
     if (autoSpeak()) replay();
@@ -503,7 +508,7 @@ function viewStudy(id) {
   $('#card').onclick = reveal;
   keyHandler = e => {
     if (!shown && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); reveal(); }
-    else if (shown && /^[1-4]$/.test(e.key)) answer(+e.key);
+    else if (shown && /^[1-3]$/.test(e.key)) answer(grades[e.key - 1][0]);
     else if (shown && e.key.toLowerCase() === 'r') replay();
   };
 }

@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Repaso">
+<meta name="apple-mobile-web-app-title" content="安気">
 <meta name="theme-color" content="#171d17">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inclusive+Sans:wght@300..700&family=Noto+Sans+JP:wght@400..700&display=swap">
-<title>Repaso</title>
+<title>安気</title>
 <style>
   :root {
     color-scheme: dark;
@@ -185,7 +185,7 @@
 <body>
 <header>
   <div><button class="icon" id="back" hidden lang="ja"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12H5"/><path d="M11 5l-7 7 7 7"/></svg>戻る</button></div>
-  <h1 id="title">Repaso</h1>
+  <h1 id="title">安気</h1>
   <div class="right" id="actions"></div>
 </header>
 <main id="view"></main>
@@ -194,7 +194,8 @@
 <script>
 'use strict';
 // ───────────── Datos ─────────────
-const KEY = 'repaso-v1';
+const APP_NAME = '安気'; // anki: tranquilidad
+const KEY = 'repaso-v1'; // no cambiar: es donde están guardadas las tarjetas
 const MIN = 60e3, DAY = 864e5;
 // Respuestas: 1 = Otra vez, 2 = Difícil, 4 = Fácil (no hay "Bien").
 const AGAIN_MIN = 10;             // Otra vez: vuelve a aparecer en 10 minutos
@@ -339,7 +340,7 @@ function header(title, back, actions = '') {
   backTarget = back;
   $('#back').hidden = !back;
   $('#actions').innerHTML = actions;
-  document.title = title === 'Repaso' ? 'Repaso' : `${title} · Repaso`;
+  document.title = title === APP_NAME ? APP_NAME : `${title} · ${APP_NAME}`;
 }
 $('#back').onclick = () => go(backTarget);
 
@@ -408,7 +409,7 @@ addEventListener('visibilitychange', () => { if (!document.hidden && !answerShow
 // ───────────── Vistas ─────────────
 function viewHome() {
   const k = counts(), total = db.cards.length;
-  header('Repaso', null);
+  header(APP_NAME, null);
   document.body.classList.add('is-home');
   // 新規 = nuevas · 習得中 = aprendiendo · 復習 = para repasar · 学習開始 = empezar a estudiar
   view.innerHTML = `

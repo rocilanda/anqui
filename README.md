@@ -1,4 +1,4 @@
-# Anqui
+# 安気 (Anqui)
 
 App de tarjetas de repaso espaciado, hecha como web app instalable (PWA). Gratis, sin cuenta y funciona sin internet.
 

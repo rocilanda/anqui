@@ -1,8 +1,8 @@
 // App: network-first (con internet trae la última versión; sin internet usa la copia guardada).
 // Fuentes de Google: cache-first (no cambian, y así funcionan sin internet una vez cargadas).
-const CACHE = 'repaso-v13';
+const CACHE = 'repaso-v15';
 const FONTS = 'repaso-fonts-v1';
-const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './favoritos.json'];
+const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './favoritos.json', './done.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));

@@ -168,10 +168,20 @@
   .answers small { font-size: 15px; font-weight: 700; }
   #editBack { color: var(--amarillo); font-size: 18px; }
   .show { margin-top: 14px; }
-  .done { text-align: center; padding: 40px 20px; margin-top: 24px; }
-  .done .big { font-size: 56px; }
-  .done h3 { margin: 8px 0; font-size: 22px; }
-  .done .btn { margin-top: 12px; }
+  /* Fin de la sesión: pantalla completa, sin barra superior */
+  body.is-done header { display: none; }
+  .done {
+    min-height: calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    font-family: "Noto Sans JP", var(--font); color: var(--muted);
+  }
+  .done img { width: min(296px, 80vw); height: auto; }
+  .done h3 { margin: 28px 0 0; font-size: 34px; font-weight: 700; letter-spacing: .04em; }
+  .done p { margin: 18px 0 0; font-size: 20px; font-weight: 600; }
+  .done .home-btn {
+    margin-top: 64px; min-width: 209px; padding: 22px 40px; border: 3px solid var(--naranja); border-radius: 999px;
+    background: var(--surface); color: var(--naranja); font-size: 22px; font-weight: 700; text-decoration: none;
+  }
   #toast {
     position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px);
     background: var(--surface); color: var(--text); border: 1.5px solid var(--gris-200);
@@ -390,7 +400,7 @@ function route() {
   if (canSpeak && (speechSynthesis.speaking || speechSynthesis.pending)) speechSynthesis.cancel();
   const [, name, id] = location.hash.split('/');
   window.scrollTo(0, 0);
-  document.body.classList.remove('is-home', 'is-study');
+  document.body.classList.remove('is-home', 'is-study', 'is-done');
   switch (name) {
     case 'study': return viewStudy();
     case 'add': return viewEdit(null);
@@ -447,6 +457,7 @@ function fmtSpanJa(ms) {
 function viewStudy() {
   answerShown = false;
   document.body.classList.add('is-study');
+  document.body.classList.remove('is-done');
   // 学習 = estudio
   header('学習', '#/');
 
@@ -454,11 +465,14 @@ function viewStudy() {
   if (!card) {
     const soon = db.cards.filter(c => (c.state === 'learning' || c.state === 'relearning') && c.due <= endOfToday())
       .sort((a, b) => a.due - b.due)[0];
-    view.innerHTML = `<div class="done featured">
-      <div class="big">${soon ? '⏳' : '🎉'}</div>
-      <h3>${soon ? 'Esperando tarjetas en aprendizaje' : '¡Listo por hoy!'}</h3>
-      <p class="hint">${soon ? `La próxima aparece en ${fmtSpan(soon.due - LEARN_AHEAD - Date.now())}.` : 'No quedan tarjetas pendientes.'}</p>
-      <a class="btn" href="#/">Volver al inicio</a></div>`;
+    document.body.classList.add('is-done');
+    // 今日はここまで！ = ¡hasta acá por hoy! · 残りのカードはありません。 = no quedan tarjetas
+    // ひと休み = un descanso · 次のカードは…後に出ます。 = la próxima tarjeta aparece en… · ホームに戻る = volver a la home
+    view.innerHTML = `<div class="done" lang="ja">
+      <img src="done.png" alt="" width="706" height="707">
+      <h3>${soon ? 'ひと休み' : '今日はここまで！'}</h3>
+      <p>${soon ? `次のカードは${fmtSpanJa(soon.due - LEARN_AHEAD - Date.now())}後に出ます。` : '残りのカードはありません。'}</p>
+      <a class="home-btn" href="#/">ホームに戻る</a></div>`;
     if (soon) timer = setTimeout(viewStudy, Math.max(1000, soon.due - LEARN_AHEAD - Date.now()));
     return;
   }

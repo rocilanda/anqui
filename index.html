@@ -35,7 +35,7 @@
     --line: var(--gris-500);
     --accent: var(--naranja);          /* color dominante */
     --on-color: var(--negro-900);      /* texto sobre color sólido: siempre negro */
-    --new: var(--celeste); --learn: var(--naranja); --review: var(--verde);
+    --new: var(--celeste); --learn: var(--magenta); --review: var(--verde);
     --gradient: linear-gradient(90deg, var(--naranja), var(--magenta), var(--celeste), var(--verde), var(--amarillo));
     --radius: 14px;
     /* Inclusive Sans cubre el alfabeto latino; lo que no tiene (kana, kanji) cae en Noto Sans JP. */
@@ -53,8 +53,35 @@
     position: sticky; top: 0; z-index: 5; background: var(--bg);
     display: grid; grid-template-columns: 96px 1fr 96px; align-items: center; height: 52px; padding: 0 8px;
   }
-  header::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--gradient); opacity: .9; }
-  header h1 { margin: 0; font-size: 17px; font-weight: 600; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  header h1 { margin: 0; font-size: 20px; font-weight: 700; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #back { display: inline-flex; align-items: center; gap: 6px; color: var(--amarillo); }
+  #back[hidden] { display: none; }
+  #back svg { width: 20px; height: 20px; }
+  /* Home: sin barra superior, solo el botón de ajustes */
+  body.is-home header { display: none; }
+  /* Pantalla de estudio: línea divisora con el degradado de la marca */
+  body.is-study header::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--gradient); }
+  .gear {
+    position: absolute; top: calc(12px + env(safe-area-inset-top)); right: calc(16px + env(safe-area-inset-right)); z-index: 5;
+    width: 40px; height: 40px; border-radius: 50%; border: 0; padding: 0; cursor: pointer;
+    background: var(--surface); color: var(--blanco-100); display: flex; align-items: center; justify-content: center;
+  }
+  .gear svg { width: 24px; height: 24px; }
+  .home {
+    min-height: calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; gap: 24px; padding: 56px 0 8px;
+    font-family: "Noto Sans JP", var(--font);
+  }
+  .big-stat { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .big-stat b { font-size: 88px; line-height: 1; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .big-stat span { font-size: 20px; font-weight: 700; }
+  .start {
+    min-width: 164px; padding: 24px 40px; border-radius: 999px; text-align: center; text-decoration: none;
+    background: var(--accent); color: var(--on-color); font-size: 21px; font-weight: 700;
+  }
+  .home .empty { padding: 0 16px; font-family: var(--font); }
+  .btn.voice { justify-content: flex-start; gap: 14px; padding: 16px 20px; border-radius: 22px; font-size: 19px; }
+  .btn.voice svg { width: 30px; height: 30px; }
   header .right { justify-self: end; display: flex; gap: 4px; }
   .icon { background: none; border: 0; color: var(--accent); font-size: 17px; padding: 8px; cursor: pointer; font-family: inherit; font-weight: 600; white-space: nowrap; }
   .icon.big { font-size: 24px; line-height: 1; }
@@ -65,14 +92,7 @@
   .list a, .list .item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; color: inherit; text-decoration: none; }
   .list .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .list .sub { color: var(--muted); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .nums { display: flex; gap: 10px; font-variant-numeric: tabular-nums; font-size: 15px; }
-  .nums b { min-width: 22px; text-align: right; font-weight: 600; }
   .n { color: var(--new); } .l { color: var(--learn); } .r { color: var(--review); }
-  .nums b.zero { color: var(--disabled); }
-  .legend { display: flex; gap: 14px; justify-content: flex-end; font-size: 13px; color: var(--muted); margin: 0 16px 8px; }
-  .legend span::before { content: "●"; margin-right: 4px; }
-  .legend .n::before { color: var(--new); } .legend .l::before { color: var(--learn); } .legend .r::before { color: var(--review); }
-  .legend span { color: var(--muted); }
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 6px;
     border: 1.5px solid var(--surface); border-radius: 12px; padding: 13px 18px; font: inherit; font-weight: 600; cursor: pointer;
@@ -83,8 +103,6 @@
   .btn.block { width: 100%; }
   .btn:disabled { color: var(--disabled); cursor: default; }
   .stack { display: grid; gap: 10px; }
-  .row { display: flex; gap: 8px; }
-  .row > input { flex: 1; min-width: 0; }
   input, textarea, select {
     font: inherit; color: var(--text); background: var(--surface); border: 1.5px solid var(--surface);
     border-radius: 12px; padding: 12px 14px; width: 100%;
@@ -127,20 +145,28 @@
   .card hr { border: 0; border-top: 1.5px solid var(--gris-300); margin: 0; }
   .card .reading { font-size: 22px; color: var(--gris-500); margin-bottom: -6px; }
   .card .back { font-size: 18px; line-height: 1.5; }
-  .speak {
-    align-self: center; display: inline-flex; align-items: center; gap: 6px; margin: -4px 0;
-    background: none; border: 1.5px solid var(--gris-300); border-radius: 999px; padding: 6px 14px;
-    color: var(--reading-text); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+  .tools { display: flex; justify-content: center; gap: 10px; margin: -4px 0; }
+  .tool {
+    width: 44px; height: 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
+    background: none; border: 1.5px solid var(--gris-300); border-radius: 999px; color: var(--reading-text); cursor: pointer;
   }
-  .speak svg { width: 18px; height: 18px; }
-  .speak.on { border-color: var(--reading-text); }
-  .answers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+  .tool svg { width: 20px; height: 20px; }
+  .tool.on { border-color: var(--reading-text); }
+  .card textarea {
+    background: #fff; color: var(--reading-text); border-color: var(--gris-300); font-size: 18px; line-height: 1.5; text-align: center;
+  }
+  .card textarea:focus { border-color: var(--accent); }
+  .edit-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .edit-actions .btn { padding: 10px; font-size: 16px; }
+  .edit-actions .btn:not(.primary) { background: none; border-color: var(--gris-300); color: var(--reading-text); }
+  .answers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 12px; }
   .answers button {
-    border: 1.5px solid currentColor; border-radius: 12px; padding: 10px 4px; font: inherit; font-weight: 600; cursor: pointer;
-    background: var(--surface); display: flex; flex-direction: column; align-items: center; gap: 2px;
+    border: 0; border-radius: 22px; padding: 16px 4px; cursor: pointer;
+    background: #3b453c; color: var(--text); font: 700 19px/1.3 "Noto Sans JP", var(--font);
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
   }
-  .answers small { font-size: 12px; font-weight: 500; color: var(--muted); }
-  .a1 { color: var(--naranja); } .a2 { color: var(--amarillo); } .a4 { color: var(--celeste); }
+  .answers small { font-size: 15px; font-weight: 700; }
+  #editBack { color: var(--amarillo); font-size: 18px; }
   .show { margin-top: 14px; }
   .done { text-align: center; padding: 40px 20px; margin-top: 24px; }
   .done .big { font-size: 56px; }
@@ -158,7 +184,7 @@
 </head>
 <body>
 <header>
-  <div><button class="icon" id="back" hidden>‹ Atrás</button></div>
+  <div><button class="icon" id="back" hidden lang="ja"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12H5"/><path d="M11 5l-7 7 7 7"/></svg>戻る</button></div>
   <h1 id="title">Repaso</h1>
   <div class="right" id="actions"></div>
 </header>
@@ -179,9 +205,23 @@ const LEARN_AHEAD = 20 * MIN;     // se pueden mostrar tarjetas en aprendizaje h
 let firstRun = false;
 let db = load();
 function load() {
-  try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && Array.isArray(d.decks)) return d; } catch {}
+  try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && Array.isArray(d.cards)) return migrate(d); } catch {}
   firstRun = true;
-  return { decks: [], cards: [], log: {}, settings: { newPerDay: 20 } };
+  return { cards: [], log: {}, settings: { newPerDay: 20 } };
+}
+// Las versiones anteriores tenían varios mazos: se juntan todas las tarjetas en el mazo único.
+function migrate(d) {
+  d.settings ??= { newPerDay: 20 };
+  d.log ??= {};
+  if (d.decks) {
+    const own = d.decks.map(x => x.newPerDay).find(v => v != null);
+    if (own != null) d.settings.newPerDay = own;
+    delete d.decks;
+  }
+  // El registro diario era { día: { mazo: nuevas } }; ahora es { día: nuevas }.
+  for (const k in d.log) if (typeof d.log[k] === 'object') d.log[k] = Object.values(d.log[k]).reduce((a, b) => a + b, 0);
+  d.cards.forEach(c => delete c.deckId);
+  return d;
 }
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(db)); }
@@ -192,22 +232,18 @@ navigator.storage?.persist?.();
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const dayKey = (t = Date.now()) => { const d = new Date(t); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
 const endOfToday = () => { const d = new Date(); d.setHours(23, 59, 59, 999); return +d; };
-const deckById = id => db.decks.find(d => d.id === id);
-const cardsOf = id => db.cards.filter(c => c.deckId === id);
-const newLimit = deck => deck.newPerDay ?? db.settings.newPerDay;
-const introducedToday = id => db.log[dayKey()]?.[id] ?? 0;
+const newLimit = () => db.settings.newPerDay;
+const introducedToday = () => db.log[dayKey()] ?? 0;
 
-function newCard(deckId, front, back, reading = '') {
-  return { id: uid(), deckId, front, reading, back, created: Date.now(), state: 'new', step: 0, due: 0, interval: 0, ease: 2.5, reps: 0, lapses: 0 };
+function newCard(front, back, reading = '') {
+  return { id: uid(), front, reading, back, created: Date.now(), state: 'new', step: 0, due: 0, interval: 0, ease: 2.5, reps: 0, lapses: 0 };
 }
 
-// Mazo inicial de vocabulario (favoritos.json: [{f: frente, r: lectura, b: significado}])
+// Vocabulario inicial (favoritos.json: [{f: frente, r: lectura, b: significado}])
 async function addFavoritos() {
   const words = await (await fetch('favoritos.json')).json();
-  const deck = { id: uid(), name: 'Favoritos', created: Date.now() };
-  db.decks.push(deck);
   const t = Date.now();
-  words.forEach((w, i) => db.cards.push({ ...newCard(deck.id, w.f, w.b, w.r), created: t + i }));
+  words.forEach((w, i) => db.cards.push({ ...newCard(w.f, w.b, w.r), created: t + i }));
   save();
 }
 
@@ -256,28 +292,27 @@ function fmtSpan(ms) {
 }
 
 // ───────────── Colas ─────────────
-function counts(deckId) {
+function counts() {
   const now = Date.now(), eod = endOfToday();
   let n = 0, l = 0, r = 0;
   for (const c of db.cards) {
-    if (c.deckId !== deckId) continue;
     if (c.state === 'new') n++;
     else if (c.state === 'learning' || c.state === 'relearning') { if (c.due <= now + LEARN_AHEAD) l++; }
     else if (c.due <= eod) r++;
   }
-  n = Math.min(n, Math.max(0, newLimit(deckById(deckId)) - introducedToday(deckId)));
+  n = Math.min(n, Math.max(0, newLimit() - introducedToday()));
   return { n, l, r };
 }
 
-function nextCard(deckId) {
+function nextCard() {
   const now = Date.now(), eod = endOfToday();
-  const cards = cardsOf(deckId);
+  const cards = db.cards;
   const byDue = (a, b) => a.due - b.due;
   const learning = cards.filter(c => c.state === 'learning' || c.state === 'relearning').sort(byDue);
   if (learning[0] && learning[0].due <= now) return learning[0];
   const reviews = cards.filter(c => c.state === 'review' && c.due <= eod).sort(byDue);
   if (reviews[0]) return reviews[0];
-  if (introducedToday(deckId) < newLimit(deckById(deckId))) {
+  if (introducedToday() < newLimit()) {
     const fresh = cards.filter(c => c.state === 'new').sort((a, b) => a.created - b.created);
     if (fresh[0]) return fresh[0];
   }
@@ -290,7 +325,6 @@ const $ = s => document.querySelector(s);
 const view = $('#view');
 const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const rich = s => esc(s).replace(/\n/g, '<br>');
-const num = (v, cls) => `<b class="${v ? cls : cls + ' zero'}">${v}</b>`;
 const go = h => { location.hash = h; };
 
 let toastTimer;
@@ -348,21 +382,20 @@ function speak(text, btn) {
 }
 const autoSpeak = () => db.settings.autoSpeak !== false;
 const SPEAKER = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>`;
+const GEAR = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 2h4v3.1l1.6.7 2.2-2.2 2.8 2.8-2.2 2.2.7 1.6H22v4h-3.1l-.7 1.6 2.2 2.2-2.8 2.8-2.2-2.2-1.6.7V22h-4v-3.1l-1.6-.7-2.2 2.2-2.8-2.8 2.2-2.2-.7-1.6H2v-4h3.1l.7-1.6-2.2-2.2 2.8-2.8 2.2 2.2 1.6-.7zm2 6.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg>`;
 
 function route() {
   clearTimeout(timer); keyHandler = null; answerShown = false;
   if (canSpeak && (speechSynthesis.speaking || speechSynthesis.pending)) speechSynthesis.cancel();
   const [, name, id] = location.hash.split('/');
   window.scrollTo(0, 0);
-  const needsDeck = ['deck', 'study', 'add', 'cards', 'import'];
-  if (needsDeck.includes(name) && !deckById(id)) return go('#/');
+  document.body.classList.remove('is-home', 'is-study');
   switch (name) {
-    case 'deck': return viewDeck(id);
-    case 'study': return viewStudy(id);
-    case 'add': return viewEdit(id, null);
-    case 'edit': return db.cards.find(c => c.id === id) ? viewEdit(null, id) : go('#/');
-    case 'cards': return viewCards(id);
-    case 'import': return viewImport(id);
+    case 'study': return viewStudy();
+    case 'add': return viewEdit(null);
+    case 'edit': return db.cards.find(c => c.id === id) ? viewEdit(id) : go('#/');
+    case 'cards': return viewCards();
+    case 'import': return viewImport();
     case 'settings': return viewSettings();
     default: return viewHome();
   }
@@ -374,101 +407,67 @@ addEventListener('visibilitychange', () => { if (!document.hidden && !answerShow
 
 // ───────────── Vistas ─────────────
 function viewHome() {
-  header('Repaso', null, `<button class="icon big" id="gear" aria-label="Ajustes">⚙︎</button>`);
-  $('#gear').onclick = () => go('#/settings');
-  const rows = db.decks.map(d => {
-    const k = counts(d.id);
-    return `<li><a href="#/deck/${d.id}"><span class="name">${esc(d.name)}</span>
-      <span class="nums">${num(k.n, 'n')}${num(k.l, 'l')}${num(k.r, 'r')}</span></a></li>`;
-  }).join('');
+  const k = counts(), total = db.cards.length;
+  header('Repaso', null);
+  document.body.classList.add('is-home');
+  // 新規 = nuevas · 習得中 = aprendiendo · 復習 = para repasar · 学習開始 = empezar a estudiar
   view.innerHTML = `
-    ${db.decks.length ? `
-      <div class="legend"><span class="n">Nuevas</span><span class="l">Aprendiendo</span><span class="r">Repaso</span></div>
-      <ul class="list">${rows}</ul>` : `
-      <div class="empty">
-        <p>Todavía no tenés mazos.<br>Creá uno abajo o cargá tu vocabulario de favoritos.</p>
-        <button class="btn" id="fav">Cargar mazo Favoritos</button>
-      </div>`}
-    <h2>Nuevo mazo</h2>
-    <form class="row" id="newDeck">
-      <input name="name" placeholder="Nombre del mazo" autocomplete="off" required>
-      <button class="btn primary">Crear</button>
-    </form>`;
-  $('#newDeck').onsubmit = e => {
-    e.preventDefault();
-    const name = e.target.name.value.trim(); if (!name) return;
-    db.decks.push({ id: uid(), name, created: Date.now() }); save(); viewHome();
-  };
+    <button class="gear" id="gear" aria-label="設定 (Ajustes)">${GEAR}</button>
+    <div class="home" lang="ja">
+      <div class="big-stat n"><b>${k.n}</b><span>新規</span></div>
+      <div class="big-stat l"><b>${k.l}</b><span>習得中</span></div>
+      <div class="big-stat r"><b>${k.r}</b><span>復習</span></div>
+      ${total ? '' : `
+        <div class="empty" lang="es">
+          <p>Todavía no hay tarjetas.<br>Agregá las tuyas o cargá tu vocabulario de favoritos.</p>
+          <button class="btn" id="fav">Cargar Favoritos</button>
+        </div>`}
+      <a class="start" href="#/study">学習開始</a>
+    </div>`;
+  $('#gear').onclick = () => go('#/settings');
   $('#fav')?.addEventListener('click', async e => {
     e.target.disabled = true;
     try { await addFavoritos(); viewHome(); }
-    catch { e.target.disabled = false; toast('No se pudo cargar el mazo. ¿Hay conexión?', true); }
+    catch { e.target.disabled = false; toast('No se pudo cargar Favoritos. ¿Hay conexión?', true); }
   });
 }
 
-function viewDeck(id) {
-  const deck = deckById(id), k = counts(id), total = cardsOf(id).length;
-  header(deck.name, '#/');
-  view.innerHTML = `
-    <div class="stats featured">
-      <div class="stat"><b class="${k.n ? 'n' : 'zero'}">${k.n}</b><span>Nuevas</span></div>
-      <div class="stat"><b class="${k.l ? 'l' : 'zero'}">${k.l}</b><span>Aprendiendo</span></div>
-      <div class="stat"><b class="${k.r ? 'r' : 'zero'}">${k.r}</b><span>Para repasar</span></div>
-    </div>
-    <div class="stack">
-      <a class="btn primary block" href="#/study/${id}">Estudiar</a>
-      <a class="btn block" href="#/add/${id}">＋ Agregar tarjeta</a>
-    </div>
-    <h2>Mazo</h2>
-    <ul class="list">
-      <li><a href="#/cards/${id}"><span class="name">Ver tarjetas</span><span class="sub">${total}</span><span class="sub">›</span></a></li>
-      <li><a href="#/import/${id}"><span class="name">Importar desde texto</span><span class="sub">›</span></a></li>
-    </ul>
-    <h2>Opciones</h2>
-    <div class="stack">
-      <div><label for="dname">Nombre</label><input id="dname" value="${esc(deck.name)}"></div>
-      <div><label for="dnew">Tarjetas nuevas por día</label><input id="dnew" type="number" min="0" max="999" inputmode="numeric" value="${newLimit(deck)}"></div>
-      <button class="btn danger block" id="del">Eliminar mazo</button>
-    </div>`;
-  $('#dname').onchange = e => { const v = e.target.value.trim(); if (v) { deck.name = v; save(); header(v, '#/'); } };
-  $('#dnew').onchange = e => { deck.newPerDay = Math.max(0, parseInt(e.target.value) || 0); save(); viewDeck(id); };
-  $('#del').onclick = () => {
-    if (!confirm(`¿Eliminar "${deck.name}" y sus ${total} tarjetas? No se puede deshacer.`)) return;
-    db.decks = db.decks.filter(d => d.id !== id);
-    db.cards = db.cards.filter(c => c.deckId !== id);
-    save(); go('#/');
-  };
+// Intervalos de los botones de respuesta, en japonés: 10分, 1日, 4日…
+function fmtSpanJa(ms) {
+  const m = ms / MIN;
+  if (m < 60) return `${Math.max(1, Math.round(m))}分`;
+  if (m < 1440) return `${Math.round(m / 60)}時間`;
+  const d = ms / DAY;
+  if (d < 30) return `${Math.round(d)}日`;
+  if (d < 365) return `${+(d / 30).toFixed(1)}ヶ月`;
+  return `${+(d / 365).toFixed(1)}年`;
 }
 
-let undo = null;
-function viewStudy(id) {
+function viewStudy() {
   answerShown = false;
-  const deck = deckById(id);
-  header(deck.name, `#/deck/${id}`, undo?.deckId === id ? `<button class="icon" id="undo">Deshacer</button>` : '');
-  $('#undo')?.addEventListener('click', () => {
-    const i = db.cards.findIndex(c => c.id === undo.card.id);
-    if (i >= 0) db.cards[i] = undo.card;
-    db.log = undo.log; undo = null; save(); viewStudy(id);
-  });
+  document.body.classList.add('is-study');
+  // 学習 = estudio
+  header('学習', '#/');
 
-  const card = nextCard(id);
+  const card = nextCard();
   if (!card) {
-    const soon = cardsOf(id).filter(c => (c.state === 'learning' || c.state === 'relearning') && c.due <= endOfToday())
+    const soon = db.cards.filter(c => (c.state === 'learning' || c.state === 'relearning') && c.due <= endOfToday())
       .sort((a, b) => a.due - b.due)[0];
     view.innerHTML = `<div class="done featured">
       <div class="big">${soon ? '⏳' : '🎉'}</div>
       <h3>${soon ? 'Esperando tarjetas en aprendizaje' : '¡Listo por hoy!'}</h3>
-      <p class="hint">${soon ? `La próxima aparece en ${fmtSpan(soon.due - LEARN_AHEAD - Date.now())}.` : 'No quedan tarjetas pendientes en este mazo.'}</p>
-      <a class="btn" href="#/deck/${id}">Volver al mazo</a></div>`;
-    if (soon) timer = setTimeout(() => viewStudy(id), Math.max(1000, soon.due - LEARN_AHEAD - Date.now()));
+      <p class="hint">${soon ? `La próxima aparece en ${fmtSpan(soon.due - LEARN_AHEAD - Date.now())}.` : 'No quedan tarjetas pendientes.'}</p>
+      <a class="btn" href="#/">Volver al inicio</a></div>`;
+    if (soon) timer = setTimeout(viewStudy, Math.max(1000, soon.due - LEARN_AHEAD - Date.now()));
     return;
   }
 
-  const k = counts(id);
+  const k = counts();
   const cur = card.state === 'new' ? 'n' : card.state === 'review' ? 'r' : 'l';
   const now = Date.now();
-  const grades = [[1, 'Otra vez'], [2, 'Difícil'], [4, 'Fácil']];
-  const previews = grades.map(([g]) => fmtSpan(schedule(card, g, now, false).due - now));
+  // もう一度 = otra vez · 正解 = correcto · 簡単 = fácil
+  const grades = [[1, 'もう一度'], [2, '正解'], [4, '簡単']];
+  const previews = grades.map(([g]) => fmtSpanJa(schedule(card, g, now, false).due - now));
   view.innerHTML = `<div class="study">
     <div class="counter">
       <span class="n ${cur === 'n' ? 'cur' : ''}">${k.n}</span>
@@ -476,7 +475,7 @@ function viewStudy(id) {
       <span class="r ${cur === 'r' ? 'cur' : ''}">${k.r}</span>
     </div>
     <div class="card" id="card" lang="ja"><div class="front">${rich(card.front)}</div></div>
-    <button class="btn primary block show" id="show">Mostrar respuesta</button>
+    <button class="btn primary block show" id="show" lang="ja">解答を表示</button><!-- 解答を表示 = mostrar respuesta -->
   </div>`;
 
   let shown = false;
@@ -486,23 +485,39 @@ function viewStudy(id) {
     if (shown) return; shown = answerShown = true;
     $('#card').insertAdjacentHTML('beforeend', `<hr>
       ${card.reading ? `<div class="reading">${rich(card.reading)}</div>` : ''}
-      ${canSpeak && say ? `<button class="speak" id="speak" aria-label="Escuchar pronunciación">${SPEAKER}Escuchar</button>` : ''}
-      <div class="back" lang="en">${rich(card.back)}</div>`);
+      ${canSpeak && say ? `<div class="tools"><button class="tool" id="speak" aria-label="Escuchar pronunciación">${SPEAKER}</button></div>` : ''}
+      <div class="back" id="backText" lang="en">${rich(card.back)}</div>`);
     $('#speak')?.addEventListener('click', e => { e.stopPropagation(); replay(); });
-    $('#show').outerHTML = `<div class="answers">${grades.map(([g, t], i) =>
-      `<button class="a${g}" data-g="${g}">${t}<small>${previews[i]}</small></button>`).join('')}</div>`;
+    // 編集 = editar: aparece arriba a la derecha solo con la respuesta a la vista.
+    $('#actions').innerHTML = `<button class="icon" id="editBack" lang="ja" aria-label="編集 (Editar reverso)">編集</button>`;
+    $('#editBack').onclick = editBack;
+    $('#show').outerHTML = `<div class="answers" lang="ja">${grades.map(([g, t], i) =>
+      `<button data-g="${g}">${t}<small>${previews[i]}</small></button>`).join('')}</div>`;
     view.querySelectorAll('[data-g]').forEach(b => b.onclick = () => answer(+b.dataset.g));
     // Se llama dentro del toque del usuario, así iOS permite el audio.
     if (autoSpeak()) replay();
   };
+  // Edita el reverso ahí mismo, sin salir del estudio.
+  const editBack = () => {
+    if ($('#backEdit')) return;
+    $('#backText').outerHTML = `<div class="stack" id="backEdit">
+      <textarea id="backT" lang="en" aria-label="Reverso">${esc(card.back)}</textarea>
+      <div class="edit-actions"><button class="btn" id="cancelBack">Cancelar</button><button class="btn primary" id="saveBack">Guardar</button></div>
+    </div>`;
+    const close = () => {
+      $('#backEdit').outerHTML = `<div class="back" id="backText" lang="en">${rich(card.back)}</div>`;
+    };
+    $('#cancelBack').onclick = close;
+    $('#saveBack').onclick = () => {
+      const v = $('#backT').value.trim(); if (!v) return toast('El reverso no puede quedar vacío', true);
+      card.back = v; save(); close(); toast('Guardada');
+    };
+    $('#backT').focus();
+  };
   const answer = g => {
-    undo = { deckId: id, card: { ...card }, log: JSON.parse(JSON.stringify(db.log)) };
-    if (card.state === 'new') {
-      const day = (db.log[dayKey()] ??= {});
-      day[id] = (day[id] ?? 0) + 1;
-    }
+    if (card.state === 'new') db.log[dayKey()] = introducedToday() + 1;
     Object.assign(card, schedule(card, g));
-    save(); viewStudy(id);
+    save(); viewStudy();
   };
   $('#show').onclick = reveal;
   $('#card').onclick = reveal;
@@ -513,10 +528,9 @@ function viewStudy(id) {
   };
 }
 
-function viewEdit(deckId, cardId) {
+function viewEdit(cardId) {
   const card = cardId ? db.cards.find(c => c.id === cardId) : null;
-  deckId = card ? card.deckId : deckId;
-  const back = card ? `#/cards/${deckId}` : `#/deck/${deckId}`;
+  const back = card ? '#/cards' : '#/settings';
   header(card ? 'Editar tarjeta' : 'Nueva tarjeta', back);
   view.innerHTML = `<form class="stack" id="f">
     <div><label for="front">Frente</label><textarea id="front" required>${esc(card?.front ?? '')}</textarea></div>
@@ -533,9 +547,9 @@ function viewEdit(deckId, cardId) {
     const front = $('#front').value.trim(), backT = $('#backT').value.trim(), reading = $('#reading').value.trim();
     if (!front || !backT) return;
     if (card) { Object.assign(card, { front, back: backT, reading }); save(); toast('Guardada'); go(back); return; }
-    db.cards.push(newCard(deckId, front, backT, reading));
+    db.cards.push(newCard(front, backT, reading));
     // La inversa muestra el significado y pregunta la palabra; la lectura va en el reverso.
-    if ($('#rev').checked) db.cards.push({ ...newCard(deckId, backT, front, reading), created: Date.now() + 1 });
+    if ($('#rev').checked) db.cards.push({ ...newCard(backT, front, reading), created: Date.now() + 1 });
     save(); toast($('#rev').checked ? '2 tarjetas agregadas' : 'Tarjeta agregada');
     $('#front').value = ''; $('#reading').value = ''; $('#backT').value = ''; $('#front').focus();
   };
@@ -545,13 +559,13 @@ function viewEdit(deckId, cardId) {
   });
 }
 
-function viewCards(id) {
-  header('Tarjetas', `#/deck/${id}`, `<button class="icon big" id="add" aria-label="Agregar">＋</button>`);
-  $('#add').onclick = () => go(`#/add/${id}`);
+function viewCards() {
+  header('Tarjetas', '#/settings', `<button class="icon big" id="add" aria-label="Agregar">＋</button>`);
+  $('#add').onclick = () => go('#/add');
   view.innerHTML = `<input id="q" type="search" placeholder="Buscar…" autocomplete="off"><div id="res" style="margin-top:12px"></div>`;
   const draw = () => {
     const q = $('#q').value.trim().toLowerCase();
-    const cards = cardsOf(id).filter(c => !q || [c.front, c.reading ?? '', c.back].some(s => s.toLowerCase().includes(q)))
+    const cards = db.cards.filter(c => !q || [c.front, c.reading ?? '', c.back].some(s => s.toLowerCase().includes(q)))
       .sort((a, b) => b.created - a.created);
     const status = c => c.state === 'new' ? '<span class="n">nueva</span>'
       : c.state === 'review' ? `<span class="r">${c.due <= Date.now() ? 'hoy' : 'en ' + fmtSpan(c.due - Date.now())}</span>`
@@ -560,13 +574,13 @@ function viewCards(id) {
       <li><a href="#/edit/${c.id}"><span class="name">${esc(c.front)}<div class="sub">${c.reading ? esc(c.reading) + ' · ' : ''}${esc(c.back.replace(/\n/g, '; '))}</div></span>
       <span class="sub">${status(c)}</span></a></li>`).join('')}</ul>
       ${cards.length > 300 ? `<p class="hint">Mostrando 300 de ${cards.length}. Usá la búsqueda.</p>` : ''}`
-      : `<div class="empty">${q ? 'Sin resultados.' : 'Este mazo no tiene tarjetas.'}</div>`;
+      : `<div class="empty">${q ? 'Sin resultados.' : 'Todavía no hay tarjetas.'}</div>`;
   };
   $('#q').oninput = draw; draw();
 }
 
-function viewImport(id) {
-  header('Importar', `#/deck/${id}`);
+function viewImport() {
+  header('Importar', '#/settings');
   view.innerHTML = `<div class="stack">
     <p class="hint">Pegá una tarjeta por línea, con el frente y el reverso separados por <b>tabulación</b>, <b>;</b> o <b>|</b>.
     Sirve para pegar desde una planilla (Excel / Google Sheets) o un archivo exportado de Anki como texto.
@@ -582,29 +596,35 @@ function viewImport(id) {
       if (cols.length >= 3) {
         const [word, reading, meaning] = cols;
         const front = word || reading.split(/[,、]/)[0].trim();
-        if (front && meaning) db.cards.push({ ...newCard(id, front, meaning.split(/;\s*/).join('\n'), reading), created: Date.now() + added++ });
+        if (front && meaning) db.cards.push({ ...newCard(front, meaning.split(/;\s*/).join('\n'), reading), created: Date.now() + added++ });
         continue;
       }
       const sep = line.includes('\t') ? '\t' : line.includes(';') ? ';' : '|';
       const i = line.indexOf(sep); if (i < 0) continue;
       const front = line.slice(0, i).trim(), back = line.slice(i + 1).trim();
-      if (front && back) db.cards.push({ ...newCard(id, front, back), created: Date.now() + added++ });
+      if (front && back) db.cards.push({ ...newCard(front, back), created: Date.now() + added++ });
     }
     save();
-    if (added) { toast(`${added} tarjetas importadas`); go(`#/deck/${id}`); }
+    if (added) { toast(`${added} tarjetas importadas`); go('#/'); }
     else toast('No encontré tarjetas con separador', true);
   };
 }
 
 function viewSettings() {
-  header('Ajustes', '#/');
+  header('設定', '#/'); // 設定 = Ajustes
   view.innerHTML = `<div class="stack">
-    <div><label for="np">Tarjetas nuevas por día (valor por defecto)</label>
+    <div><label for="np">Tarjetas nuevas por día</label>
       <input id="np" type="number" min="0" max="999" inputmode="numeric" value="${db.settings.newPerDay}"></div>
+    <a class="btn block" href="#/add" style="margin-top:20px">＋ Agregar tarjeta</a>
+    <h2>Tarjetas</h2>
+    <ul class="list">
+      <li><a href="#/cards"><span class="name">Ver tarjetas</span><span class="sub">${db.cards.length}</span><span class="sub">›</span></a></li>
+      <li><a href="#/import"><span class="name">Importar desde texto</span><span class="sub">›</span></a></li>
+    </ul>
     <h2>Pronunciación</h2>
     ${canSpeak ? `
       <label class="check" style="margin-top:0"><input type="checkbox" id="auto" ${autoSpeak() ? 'checked' : ''}> Leer la palabra en voz alta al mostrar la respuesta</label>
-      <button class="btn block" id="test">${SPEAKER} Probar voz</button>
+      <button class="btn block voice" id="test">${SPEAKER} Probar voz</button>
       <p class="hint">Usa la voz japonesa del iPhone. Si no se escucha, revisá el volumen y el modo silencio.
         Para una voz más natural: Ajustes del iPhone → Accesibilidad → Contenido leído → Voces → Japonés → descargá una voz "mejorada".</p>`
     : `<p class="hint" style="margin-top:0">Este navegador no permite leer en voz alta.</p>`}
@@ -614,7 +634,6 @@ function viewSettings() {
     <button class="btn primary block" id="exp">Exportar copia (.json)</button>
     <label class="btn block" style="margin:0;color:var(--accent);font-size:17px">Restaurar copia…
       <input type="file" id="imp" accept=".json,application/json" hidden></label>
-    <p class="hint">${db.decks.length} mazos · ${db.cards.length} tarjetas</p>
   </div>`;
   $('#np').onchange = e => { db.settings.newPerDay = Math.max(0, parseInt(e.target.value) || 0); save(); };
   $('#auto')?.addEventListener('change', e => { db.settings.autoSpeak = e.target.checked; save(); });
@@ -632,9 +651,9 @@ function viewSettings() {
     const f = e.target.files[0]; if (!f) return;
     try {
       const data = JSON.parse(await f.text());
-      if (!Array.isArray(data.decks) || !Array.isArray(data.cards)) throw 0;
-      if (!confirm(`Esto reemplaza todo por la copia (${data.decks.length} mazos, ${data.cards.length} tarjetas). ¿Seguir?`)) return;
-      db = { log: {}, settings: { newPerDay: 20 }, ...data }; save(); toast('Copia restaurada'); go('#/');
+      if (!Array.isArray(data.cards)) throw 0;
+      if (!confirm(`Esto reemplaza todo por la copia (${data.cards.length} tarjetas). ¿Seguir?`)) return;
+      db = migrate(data); save(); toast('Copia restaurada'); go('#/');
     } catch { toast('El archivo no es una copia válida', true); }
   };
 }

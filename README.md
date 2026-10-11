@@ -2,8 +2,8 @@
 
 App de tarjetas de repaso espaciado, hecha como web app instalable (PWA). Gratis, sin cuenta y funciona sin internet.
 
-- Algoritmo SM-2 como Anki (Otra vez / Difícil / Bien / Fácil)
-- Mazo inicial **Favoritos** con 333 palabras en japonés (lectura + significado)
+- Algoritmo SM-2 como Anki, con tres respuestas: もう一度 (10 min) / 正解 (1 día) / 簡単 (4 días)
+- Un solo mazo, que arranca con las 333 palabras de **Favoritos** en japonés (lectura + significado)
 - Pronunciación en japonés con la voz del sistema
 - Importar desde texto, exportar y restaurar copias de seguridad
 - Colores del sistema de diseño de Empujón; fuentes Inclusive Sans + Noto Sans JP

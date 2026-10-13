@@ -266,7 +266,8 @@ function migrate(d) {
   for (const k in d.log) if (typeof d.log[k] === 'object') d.log[k] = Object.values(d.log[k]).reduce((a, b) => a + b, 0);
   d.cards.forEach(c => delete c.deckId);
   // Días en que se cumplió el objetivo diario (llegar al final de las tarjetas): { día: 1 }.
-  d.done ??= {};
+  // Las versiones anteriores no lo anotaban: la primera vez se marcan los días en que se estudiaron tarjetas nuevas.
+  if (!d.done) { d.done = {}; for (const k in d.log) if (d.log[k] > 0) d.done[k] = 1; }
   return d;
 }
 function save() {

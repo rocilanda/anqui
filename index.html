@@ -43,6 +43,10 @@
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; background: var(--bg); color: var(--text); }
+  /* Sin rebote elástico de iOS: la app no se "estira" al arrastrar con el dedo */
+  html, body { overscroll-behavior: none; }
+  /* Pantallas fijas (home, estudio, final): ocupan justo el alto del celular y no scrollean */
+  html.locked, html.locked body { height: 100%; overflow: hidden; }
   body {
     font: 17px/1.45 var(--font);
     min-height: 100dvh; display: flex; flex-direction: column;
@@ -59,14 +63,43 @@
   #back svg { width: 20px; height: 20px; }
   /* Home: sin barra superior, solo el botón de ajustes */
   body.is-home header { display: none; }
-  /* Pantalla de estudio: línea divisora con el degradado de la marca */
-  body.is-study header::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--gradient); }
+  /* Estudio, estadísticas y ajustes: línea divisora con el degradado de la marca */
+  body.is-study header::after, body.has-line header::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--gradient); }
   .gear {
     position: absolute; top: calc(12px + env(safe-area-inset-top)); right: calc(16px + env(safe-area-inset-right)); z-index: 5;
     width: 40px; height: 40px; border-radius: 50%; border: 0; padding: 0; cursor: pointer;
     background: var(--surface); color: var(--blanco-100); display: flex; align-items: center; justify-content: center;
   }
   .gear svg { width: 24px; height: 24px; }
+  .gear.left { right: auto; left: calc(16px + env(safe-area-inset-left)); }
+  /* Estadísticas */
+  .streak { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0 24px; text-align: center; font-family: "Noto Sans JP", var(--font); }
+  .streak b { display: block; font-size: 40px; line-height: 1.1; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .streak b small { font-size: 18px; margin-left: 2px; }
+  .streak span { font-size: 14px; font-weight: 700; color: var(--muted); }
+  .streak .now b { color: var(--naranja); }
+  /* Calendario (como el del sistema de diseño de Empujón) */
+  .cal { background: var(--surface); border-radius: 20px; padding: 18px 14px 14px; font-family: "Noto Sans JP", var(--font); }
+  .cal-head { display: flex; align-items: center; gap: 12px; margin: 0 4px 12px; }
+  .cal-head select {
+    appearance: none; -webkit-appearance: none; width: auto; border: 0; border-radius: 0; padding: 0 20px 0 0; cursor: pointer;
+    color: var(--text); font: 700 20px "Noto Sans JP", var(--font);
+    background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f4f5f5' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right center / 14px;
+  }
+  .cal-head select:focus { border: 0; }
+  .cal-nav { margin-left: auto; display: flex; }
+  .cal-nav button { background: none; border: 0; padding: 6px; color: var(--gris-300); cursor: pointer; display: flex; }
+  .cal-nav svg { width: 18px; height: 18px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 6px; text-align: center; }
+  .cal-grid .wd { font-size: 14px; font-weight: 600; color: var(--muted); padding-bottom: 6px; }
+  .cal-grid .d { height: 44px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-variant-numeric: tabular-nums; color: var(--text); }
+  .cal-grid .d.future { color: var(--gris-500); }
+  .cal-grid .d.today { color: var(--verde); font-weight: 700; }
+  .cal-grid .d.on { background: #64482e; color: var(--text); }            /* tramo de la racha: naranja al 30 % sobre la superficie */
+  .cal-grid .d.on.cap { background: var(--naranja); color: var(--on-color); } /* primer y último día de la racha */
+  .cal-grid .d.rl { border-top-left-radius: 10px; border-bottom-left-radius: 10px; }
+  .cal-grid .d.rr { border-top-right-radius: 10px; border-bottom-right-radius: 10px; }
+  .cal-today { display: block; margin: 10px auto 0; background: none; border: 0; cursor: pointer; color: var(--naranja); font: 700 16px "Noto Sans JP", var(--font); text-decoration: underline; text-underline-offset: 3px; }
   .home {
     min-height: calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; gap: 24px; padding: 56px 0 8px;
@@ -175,7 +208,7 @@
     display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
     font-family: "Noto Sans JP", var(--font); color: var(--muted);
   }
-  .done img { width: min(296px, 80vw); height: auto; }
+  .done img { width: min(296px, 80vw); height: auto; max-height: 36dvh; object-fit: contain; } /* se achica en celulares bajos */
   .done h3 { margin: 28px 0 0; font-size: 34px; font-weight: 700; letter-spacing: .04em; }
   .done p { margin: 18px 0 0; font-size: 20px; font-weight: 600; }
   .done .home-btn {
@@ -218,7 +251,7 @@ let db = load();
 function load() {
   try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && Array.isArray(d.cards)) return migrate(d); } catch {}
   firstRun = true;
-  return { cards: [], log: {}, settings: { newPerDay: 20 } };
+  return { cards: [], log: {}, done: {}, settings: { newPerDay: 20 } };
 }
 // Las versiones anteriores tenían varios mazos: se juntan todas las tarjetas en el mazo único.
 function migrate(d) {
@@ -232,6 +265,8 @@ function migrate(d) {
   // El registro diario era { día: { mazo: nuevas } }; ahora es { día: nuevas }.
   for (const k in d.log) if (typeof d.log[k] === 'object') d.log[k] = Object.values(d.log[k]).reduce((a, b) => a + b, 0);
   d.cards.forEach(c => delete c.deckId);
+  // Días en que se cumplió el objetivo diario (llegar al final de las tarjetas): { día: 1 }.
+  d.done ??= {};
   return d;
 }
 function save() {
@@ -393,6 +428,7 @@ function speak(text, btn) {
 }
 const autoSpeak = () => db.settings.autoSpeak !== false;
 const SPEAKER = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>`;
+const CHART = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="3" y="12" width="4.5" height="9" rx="1.5"/><rect x="9.75" y="4" width="4.5" height="17" rx="1.5"/><rect x="16.5" y="8" width="4.5" height="13" rx="1.5"/></svg>`;
 const GEAR = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 2h4v3.1l1.6.7 2.2-2.2 2.8 2.8-2.2 2.2.7 1.6H22v4h-3.1l-.7 1.6 2.2 2.2-2.8 2.8-2.2-2.2-1.6.7V22h-4v-3.1l-1.6-.7-2.2 2.2-2.8-2.8 2.2-2.2-.7-1.6H2v-4h3.1l.7-1.6-2.2-2.2 2.8-2.8 2.2 2.2 1.6-.7zm2 6.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg>`;
 
 function route() {
@@ -400,7 +436,8 @@ function route() {
   if (canSpeak && (speechSynthesis.speaking || speechSynthesis.pending)) speechSynthesis.cancel();
   const [, name, id] = location.hash.split('/');
   window.scrollTo(0, 0);
-  document.body.classList.remove('is-home', 'is-study', 'is-done');
+  document.body.classList.remove('is-home', 'is-study', 'is-done', 'has-line');
+  document.documentElement.classList.remove('locked');
   switch (name) {
     case 'study': return viewStudy();
     case 'add': return viewEdit(null);
@@ -408,6 +445,7 @@ function route() {
     case 'cards': return viewCards();
     case 'import': return viewImport();
     case 'settings': return viewSettings();
+    case 'stats': return viewStats();
     default: return viewHome();
   }
 }
@@ -418,11 +456,13 @@ addEventListener('visibilitychange', () => { if (!document.hidden && !answerShow
 
 // ───────────── Vistas ─────────────
 function viewHome() {
+  document.documentElement.classList.add('locked');
   const k = counts(), total = db.cards.length;
   header(APP_NAME, null);
   document.body.classList.add('is-home');
   // 新規 = nuevas · 習得中 = aprendiendo · 復習 = para repasar · 学習開始 = empezar a estudiar
   view.innerHTML = `
+    <button class="gear left" id="statsBtn" aria-label="統計 (Estadísticas)">${CHART}</button>
     <button class="gear" id="gear" aria-label="設定 (Ajustes)">${GEAR}</button>
     <div class="home" lang="ja">
       <div class="big-stat n"><b>${k.n}</b><span>新規</span></div>
@@ -436,6 +476,7 @@ function viewHome() {
       <a class="start" href="#/study">学習開始</a>
     </div>`;
   $('#gear').onclick = () => go('#/settings');
+  $('#statsBtn').onclick = () => go('#/stats');
   $('#fav')?.addEventListener('click', async e => {
     e.target.disabled = true;
     try { await addFavoritos(); viewHome(); }
@@ -455,6 +496,7 @@ function fmtSpanJa(ms) {
 }
 
 function viewStudy() {
+  document.documentElement.classList.add('locked');
   answerShown = false;
   document.body.classList.add('is-study');
   document.body.classList.remove('is-done');
@@ -466,6 +508,8 @@ function viewStudy() {
     const soon = db.cards.filter(c => (c.state === 'learning' || c.state === 'relearning') && c.due <= endOfToday())
       .sort((a, b) => a.due - b.due)[0];
     document.body.classList.add('is-done');
+    // Objetivo diario cumplido: no queda ninguna tarjeta por hoy.
+    if (!soon && !db.done[dayKey()]) { db.done[dayKey()] = 1; save(); }
     // 今日はここまで！ = ¡hasta acá por hoy! · 残りのカードはありません。 = no quedan tarjetas
     // ひと休み = un descanso · 次のカードは…後に出ます。 = la próxima tarjeta aparece en… · ホームに戻る = volver a la home
     view.innerHTML = `<div class="done" lang="ja">
@@ -625,8 +669,89 @@ function viewImport() {
   };
 }
 
+// ───────────── Estadísticas ─────────────
+const addDays = (t, n) => { const d = new Date(t); d.setDate(d.getDate() + n); return d; };
+const completed = t => !!db.done[dayKey(t)];
+const CHEVRON = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+
+function streaks() {
+  // Racha actual: si hoy todavía no terminaste, cuenta desde ayer (la racha sigue viva hasta medianoche).
+  let cur = 0, d = new Date();
+  if (!completed(d)) d = addDays(d, -1);
+  while (completed(d)) { cur++; d = addDays(d, -1); }
+  const days = Object.keys(db.done)
+    .map(k => { const [y, m, dd] = k.split('-').map(Number); return +new Date(y, m - 1, dd); }).sort((a, b) => a - b);
+  let best = 0, run = 0, prev = null;
+  for (const t of days) { run = prev != null && Math.round((t - prev) / DAY) === 1 ? run + 1 : 1; best = Math.max(best, run); prev = t; }
+  return { cur, best, total: days.length };
+}
+
+let calMonth = null; // primer día del mes que muestra el calendario
+function calendarHTML() {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const y = calMonth.getFullYear(), m = calMonth.getMonth();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const lead = (calMonth.getDay() + 6) % 7; // la semana empieza el lunes
+  const firstYear = Math.min(today.getFullYear(), ...Object.keys(db.done).map(k => +k.split('-')[0]));
+  const years = []; for (let v = firstYear; v <= today.getFullYear(); v++) years.push(v);
+  let cells = '';
+  for (let i = 0; i < lead; i++) cells += '<span></span>';
+  for (let n = 1; n <= daysInMonth; n++) {
+    const d = new Date(y, m, n), col = (lead + n - 1) % 7, cls = ['d'];
+    if (d > today) cls.push('future');
+    if (+d === +today) cls.push('today');
+    if (completed(d)) {
+      const prev = completed(addDays(d, -1)), next = completed(addDays(d, 1));
+      cls.push('on');
+      if (!prev || !next) cls.push('cap');                     // extremos de la racha en naranja lleno
+      if (!prev || col === 0 || n === 1) cls.push('rl');        // bordes redondeados al cortar la fila
+      if (!next || col === 6 || n === daysInMonth) cls.push('rr');
+    }
+    cells += `<span class="${cls.join(' ')}">${n}</span>`;
+  }
+  // 月火水木金土日 = lunes a domingo · 今日 = hoy
+  return `<div class="cal-head">
+      <select id="calM" aria-label="Mes">${Array.from({ length: 12 }, (_, i) => `<option value="${i}" ${i === m ? 'selected' : ''}>${i + 1}月</option>`).join('')}</select>
+      <select id="calY" aria-label="Año">${years.map(v => `<option value="${v}" ${v === y ? 'selected' : ''}>${v}年</option>`).join('')}</select>
+      <div class="cal-nav">
+        <button id="calPrev" aria-label="Mes anterior">${CHEVRON('M15 6l-6 6 6 6')}</button>
+        <button id="calNext" aria-label="Mes siguiente">${CHEVRON('M9 6l6 6-6 6')}</button>
+      </div>
+    </div>
+    <div class="cal-grid">${['月', '火', '水', '木', '金', '土', '日'].map(t => `<span class="wd">${t}</span>`).join('')}${cells}</div>
+    <button class="cal-today" id="calToday">今日</button>`;
+}
+
+function drawCalendar() {
+  $('#cal').innerHTML = calendarHTML();
+  const show = d => { calMonth = new Date(d.getFullYear(), d.getMonth(), 1); drawCalendar(); };
+  $('#calPrev').onclick = () => show(new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1));
+  $('#calNext').onclick = () => show(new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1));
+  $('#calToday').onclick = () => show(new Date());
+  $('#calM').onchange = e => show(new Date(calMonth.getFullYear(), +e.target.value, 1));
+  $('#calY').onchange = e => show(new Date(+e.target.value, calMonth.getMonth(), 1));
+}
+
+function viewStats() {
+  header('統計', '#/'); // 統計 = estadísticas
+  document.body.classList.add('has-line');
+  const s = streaks(), now = new Date();
+  calMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  // 連続 = racha actual · 最長 = racha más larga · 達成日数 = días con el objetivo cumplido
+  view.innerHTML = `<div lang="ja">
+    <div class="streak">
+      <div class="now"><b>${s.cur}<small>日</small></b><span>連続</span></div>
+      <div><b>${s.best}<small>日</small></b><span>最長</span></div>
+      <div><b>${s.total}<small>日</small></b><span>達成日数</span></div>
+    </div>
+    <div class="cal" id="cal"></div>
+  </div>`;
+  drawCalendar();
+}
+
 function viewSettings() {
   header('設定', '#/'); // 設定 = Ajustes
+  document.body.classList.add('has-line');
   view.innerHTML = `<div class="stack">
     <div><label for="np">Tarjetas nuevas por día</label>
       <input id="np" type="number" min="0" max="999" inputmode="numeric" value="${db.settings.newPerDay}"></div>
